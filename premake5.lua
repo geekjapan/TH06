@@ -143,15 +143,31 @@ project "th06"
     end
   end
 
-  filter "system:linux"
+  filter "system:linux or system:macosx"
     local sdl2_cflags = os.outputof("sdl2-config --cflags") or ""
     local sdl2_libs   = os.outputof("sdl2-config --libs")   or ""
     if #sdl2_cflags > 0 then buildoptions { sdl2_cflags } end
     if #sdl2_libs   > 0 then linkoptions  { sdl2_libs }   end
 
+    local sdl2_prefix = os.outputof("sdl2-config --prefix") or ""
+    if #sdl2_prefix > 0 and sdl2_prefix ~= "/usr" then
+      externalincludedirs { sdl2_prefix .. "/include" }
+    end
+
+    links { "SDL2_image", "SDL2_ttf", "m" }
+  filter {}
+
+  filter "system:linux"
     linkoptions { "-Wl,-rpath,'$ORIGIN./'" }
     libdirs { "external" }
-    links { "SDL2_image", "SDL2_ttf", "m", "vorbisfile", "vorbis", "ogg" }
+    links { "vorbisfile", "vorbis", "ogg" }
+  filter {}
+
+  filter "system:macosx"
+    local vorbis_cflags = os.outputof("pkg-config --cflags vorbisfile vorbis ogg") or ""
+    local vorbis_libs   = os.outputof("pkg-config --libs vorbisfile vorbis ogg")   or ""
+    if #vorbis_cflags > 0 then buildoptions { vorbis_cflags } end
+    if #vorbis_libs   > 0 then linkoptions  { vorbis_libs }   end
   filter {}
 
   filter "system:emscripten"
@@ -282,12 +298,17 @@ project "th06_config"
     }
   filter {}
 
-  filter "system:linux"
+  filter "system:linux or system:macosx"
     local sdl2_cflags = os.outputof("sdl2-config --cflags") or ""
     local sdl2_libs   = os.outputof("sdl2-config --libs")   or ""
 
     if #sdl2_cflags > 0 then buildoptions { sdl2_cflags } end
     if #sdl2_libs   > 0 then linkoptions  { sdl2_libs }   end
+
+    local sdl2_prefix = os.outputof("sdl2-config --prefix") or ""
+    if #sdl2_prefix > 0 and sdl2_prefix ~= "/usr" then
+      externalincludedirs { sdl2_prefix .. "/include" }
+    end
 
     links {
       "SDL2_ttf",

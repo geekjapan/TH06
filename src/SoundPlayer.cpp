@@ -160,7 +160,12 @@ const char *g_SFXList[26] = {
 };
 SoundPlayer g_SoundPlayer;
 
-SoundPlayer::SoundPlayer() { std::memset(this, 0, sizeof(SoundPlayer)); }
+SoundPlayer::SoundPlayer() {
+    std::memset(this, 0, sizeof(SoundPlayer));
+    // An all-zeroes pthread_mutex_t is only valid on glibc; on macOS locking it
+    // fails with EINVAL, so reconstruct the mutex after the memset.
+    new (&this->soundBufMutex) std::mutex();
+}
 
 ZunResult SoundPlayer::InitializeDSound() {
     ma_result result;
